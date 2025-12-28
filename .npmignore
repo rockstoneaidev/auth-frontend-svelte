@@ -1,0 +1,25 @@
+# Source files
+src/
+.svelte-kit/
+
+# Development files
+node_modules/
+.vscode/
+.idea/
+
+# Config files
+*.config.js
+*.config.ts
+tsconfig.json
+.npmrc
+
+# Git
+.git/
+.gitignore
+
+# Documentation (included via files field in package.json)
+EXAMPLES.md
+
+# Misc
+*.log
+.DS_Store
