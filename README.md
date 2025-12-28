@@ -18,8 +18,9 @@ Beautiful, accessible Firebase authentication components for Svelte apps - built
 - `RegisterForm` - User registration with email verification
 - `ForgotPasswordForm` - Password reset request form
 - `ResetPasswordForm` - New password entry (for reset links)
-- `MfaSetupForm` - Multi-factor authentication enrollment
-- `MfaChallengeForm` - MFA verification during login
+- `MfaSetupForm` - Unified MFA enrollment (Authenticator App & SMS)
+- `MfaTotpSetupForm` - Authenticator app setup with QR code
+- `MfaChallengeForm` - Multi-factor verification during login
 
 ## Installation
 

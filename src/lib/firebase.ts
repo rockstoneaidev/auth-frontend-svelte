@@ -13,6 +13,9 @@ import {
     browserSessionPersistence,
     inMemoryPersistence,
     onAuthStateChanged,
+    multiFactor,
+    TotpMultiFactorGenerator,
+    type TotpMultiFactorAssertion,
     type Auth,
     type User,
     type UserCredential
@@ -22,7 +25,8 @@ import type {
     AuthService,
     LoginCredentials,
     RegisterData,
-    AuthError
+    AuthError,
+    TotpSecret
 } from './types';
 
 let firebaseApp: FirebaseApp | null = null;
@@ -165,6 +169,59 @@ export function initFirebaseAuth(options: AuthOptions): AuthService {
         }
     }
 
+    /**
+     * Generate TOTP secret for authenticator app setup
+     */
+    async function generateTotpSecret(): Promise<TotpSecret> {
+        if (!auth?.currentUser) throw new Error('No user signed in');
+        try {
+            const mfaUser = multiFactor(auth.currentUser);
+            const secret = await TotpMultiFactorGenerator.generateSecret(mfaUser);
+            return {
+                secretCode: secret.secretKey,
+                qrCodeUrl: secret.generateQrCodeUrl(
+                    auth.currentUser.email || 'user',
+                    options.config.projectId || 'Rockstone Auth'
+                ),
+                accountName: auth.currentUser.email || 'user',
+                issuer: options.config.projectId || 'Rockstone Auth',
+                _rawSecret: secret
+            };
+        } catch (error: unknown) {
+            throw normalizeError(error);
+        }
+    }
+
+    /**
+     * Finalize TOTP enrollment
+     */
+    async function enrollTotp(secret: TotpSecret, code: string, displayName?: string): Promise<void> {
+        if (!auth?.currentUser) throw new Error('No user signed in');
+        try {
+            const mfaUser = multiFactor(auth.currentUser);
+            const assertion = TotpMultiFactorGenerator.assertionForEnrollment(
+                secret._rawSecret,
+                code
+            );
+            await mfaUser.enroll(assertion, displayName);
+        } catch (error: unknown) {
+            throw normalizeError(error);
+        }
+    }
+
+    /**
+     * Unenroll an MFA factor
+     */
+    async function unenrollMfa(mfaEnrollmentId: string): Promise<void> {
+        if (!auth?.currentUser) throw new Error('No user signed in');
+        try {
+            const mfaUser = multiFactor(auth.currentUser);
+            await mfaUser.unenroll(mfaEnrollmentId);
+        } catch (error: unknown) {
+            throw normalizeError(error);
+        }
+    }
+
     return {
         app: firebaseApp,
         auth,
@@ -175,7 +232,10 @@ export function initFirebaseAuth(options: AuthOptions): AuthService {
         confirmPasswordReset,
         getCurrentUser,
         sendEmailVerification,
-        reloadUser
+        reloadUser,
+        generateTotpSecret,
+        enrollTotp,
+        unenrollMfa
     };
 }
 
@@ -217,7 +277,10 @@ function getUserFriendlyMessage(code: string, defaultMessage: string): string {
         'auth/popup-closed-by-user': 'Sign-in cancelled',
         'auth/expired-action-code': 'This link has expired',
         'auth/invalid-action-code': 'Invalid or expired link',
-        'auth/requires-recent-login': 'Please sign in again to continue'
+        'auth/requires-recent-login': 'Please sign in again to continue',
+        'auth/multi-factor-auth-required': 'Please verify your identity with a second factor',
+        'auth/invalid-verification-code': 'Invalid verification code. Please try again',
+        'auth/unverified-email': 'Please verify your email address first'
     };
 
     return messages[code] || defaultMessage;
@@ -231,48 +294,10 @@ export function getAuthService(): AuthService {
         throw new Error('Firebase Auth not initialized. Call initFirebaseAuth() first.');
     }
 
-    // Return the same methods as initFirebaseAuth
-    return {
-        app: firebaseApp,
-        auth,
-        signIn: async (credentials) => {
-            if (!auth) throw new Error('Auth not initialized');
-            return await signInWithEmailAndPassword(auth, credentials.email, credentials.password);
-        },
-        register: async (data) => {
-            if (!auth) throw new Error('Auth not initialized');
-            const userCredential = await createUserWithEmailAndPassword(
-                auth,
-                data.email,
-                data.password
-            );
-            if (data.displayName && userCredential.user) {
-                await updateProfile(userCredential.user, { displayName: data.displayName });
-            }
-            return userCredential;
-        },
-        signOut: async () => {
-            if (!auth) throw new Error('Auth not initialized');
-            await firebaseSignOut(auth);
-        },
-        sendPasswordReset: async (email) => {
-            if (!auth) throw new Error('Auth not initialized');
-            await sendPasswordResetEmail(auth, email);
-        },
-        confirmPasswordReset: async (code, newPassword) => {
-            if (!auth) throw new Error('Auth not initialized');
-            await firebaseConfirmPasswordReset(auth, code, newPassword);
-        },
-        getCurrentUser: () => {
-            return auth?.currentUser || null;
-        },
-        sendEmailVerification: async () => {
-            if (!auth?.currentUser) throw new Error('No user signed in');
-            await firebaseSendEmailVerification(auth.currentUser);
-        },
-        reloadUser: async () => {
-            if (!auth?.currentUser) throw new Error('No user signed in');
-            await auth.currentUser.reload();
-        }
-    };
+    const service = initFirebaseAuth({
+        config: (firebaseApp as any).options,
+        persistence: 'local' // default
+    });
+
+    return service;
 }

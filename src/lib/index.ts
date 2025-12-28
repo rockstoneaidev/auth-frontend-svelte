@@ -13,7 +13,8 @@ export type {
     AuthError,
     AuthState,
     AuthService,
-    AuthEvents
+    AuthEvents,
+    TotpSecret
 } from './types.js';
 
 // Auth Components
@@ -22,6 +23,7 @@ export { default as RegisterForm } from './components/auth/register-form.svelte'
 export { default as ForgotPasswordForm } from './components/auth/forgot-password-form.svelte';
 export { default as ResetPasswordForm } from './components/auth/reset-password-form.svelte';
 export { default as MfaSetupForm } from './components/auth/mfa-setup-form.svelte';
+export { default as MfaTotpSetupForm } from './components/auth/mfa-totp-setup-form.svelte';
 export { default as MfaChallengeForm } from './components/auth/mfa-challenge-form.svelte';
 
 // UI Components  (optional - for customization)

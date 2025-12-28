@@ -16,6 +16,18 @@ export interface FirebaseConfig {
 }
 
 /**
+ * TOTP Secret for Authenticator App enrollment
+ */
+export interface TotpSecret {
+    secretCode: string;
+    qrCodeUrl: string;
+    accountName: string;
+    issuer: string;
+    /** @internal Original Firebase secret object */
+    _rawSecret?: any;
+}
+
+/**
  * Options for initializing Firebase Auth
  */
 export interface AuthOptions {
@@ -107,6 +119,10 @@ export interface AuthService {
     sendEmailVerification: () => Promise<void>;
     /** Reload user data */
     reloadUser: () => Promise<void>;
+    /** MFA Methods */
+    generateTotpSecret: () => Promise<TotpSecret>;
+    enrollTotp: (secret: TotpSecret, code: string, displayName?: string) => Promise<void>;
+    unenrollMfa: (mfaEnrollmentId: string) => Promise<void>;
 }
 
 /**
