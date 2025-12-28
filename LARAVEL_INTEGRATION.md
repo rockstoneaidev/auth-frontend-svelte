@@ -77,7 +77,7 @@ export default {
 };
 ```
 
-3. **Import styles in app layout:**
+3. **Import styles in app layout (optional if using Tailwind v4):**
 
 Edit `resources/js/app.js` or your main Inertia layout:
 
@@ -85,6 +85,8 @@ Edit `resources/js/app.js` or your main Inertia layout:
 import '@rockstoneaidev/auth-frontend-svelte/styles';
 import './app.css'; // Your existing styles
 ```
+
+> **Note for Tailwind v4 users**: You generally do not need to import the package styles in `app.js` if your `app.css` already defines the shadcn design tokens (CSS variables). The components will inherit your theme automatically since they are scanned by Tailwind's content engine.
 
 ## Firebase Setup
 

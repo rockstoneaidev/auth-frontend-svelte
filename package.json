@@ -1,6 +1,6 @@
 {
 	"name": "@rockstoneaidev/auth-frontend-svelte",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Beautiful, accessible Firebase authentication components for Svelte apps - built with shadcn-svelte",
 	"author": "RockstoneAI Dev",
 	"license": "MIT",

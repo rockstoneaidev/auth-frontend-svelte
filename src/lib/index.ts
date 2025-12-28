@@ -32,6 +32,3 @@ export { default as Card } from './components/ui/card.svelte';
 
 // Utilities
 export { cn } from './utils.js';
-
-// Styles  (host apps should import this in their layout)
-export { default as AuthStyles } from '../app.css';

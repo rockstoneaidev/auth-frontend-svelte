@@ -85,7 +85,7 @@ Install required Tailwind plugin:
 npm install -D tailwindcss-animate
 ```
 
-Import the styles in your root layout:
+Import the styles in your root layout (optional if using Tailwind v4):
 
 ```svelte
 <!-- src/routes/+layout.svelte -->
@@ -95,6 +95,8 @@ Import the styles in your root layout:
 
 <slot />
 ```
+
+> **Note for Tailwind v4 users**: You generally do not need to import the CSS file if you have already defined the shadcn design tokens (CSS variables) in your own CSS. Tailwind's content scanner will pick up the classes from the components automatically.
 
 ## Quick Start
 
